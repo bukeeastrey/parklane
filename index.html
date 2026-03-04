@@ -12,8 +12,8 @@ window.__supabaseCreateClient = createClient;
 // Wait for ESM module to load createClient
 function waitForSupabase(cb, tries=0) {
   if(window.__supabaseCreateClient) { cb(); }
-  else if(tries > 50) { document.getElementById('cfgErr').textContent='Failed to load game engine. Try refreshing.'; }
-  else { setTimeout(()=>waitForSupabase(cb, tries+1), 100); }
+  else if(tries > 100) { document.getElementById('cfgErr').textContent='Failed to load. Please refresh.'; }
+  else { setTimeout(()=>waitForSupabase(cb, tries+1), 200); }
 }
 function openInvite(){
   document.getElementById('invUrl').value = window.location.href;
