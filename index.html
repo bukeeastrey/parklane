@@ -2,12 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src * blob: data: 'unsafe-inline' 'unsafe-eval';">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PARKLANE</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+window.__supabaseCreateClient = createClient;
+</script>
 <script>
+// Wait for ESM module to load createClient
+function waitForSupabase(cb, tries=0) {
+  if(window.__supabaseCreateClient) { cb(); }
+  else if(tries > 50) { document.getElementById('cfgErr').textContent='Failed to load game engine. Try refreshing.'; }
+  else { setTimeout(()=>waitForSupabase(cb, tries+1), 100); }
+}
 function openInvite(){
   document.getElementById('invUrl').value = window.location.href;
   document.getElementById('invKey').value = 'No password needed — just open the link!';
@@ -518,7 +525,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 // ═══════════════════════════════════════════════════════════
 //  SUPABASE CLIENT
 // ═══════════════════════════════════════════════════════════
-const { createClient } = supabase;
+// createClient loaded via ESM module into window.__supabaseCreateClient
 let sb = null;
 
 // ── CREDENTIALS (baked in) ──
