@@ -4,17 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PARKLANE</title>
-<script type="module">
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-window.__supabaseCreateClient = createClient;
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-// Wait for ESM module to load createClient
-function waitForSupabase(cb, tries=0) {
-  if(window.__supabaseCreateClient) { cb(); }
-  else if(tries > 100) { document.getElementById('cfgErr').textContent='Failed to load. Please refresh.'; }
-  else { setTimeout(()=>waitForSupabase(cb, tries+1), 200); }
-}
+function waitForSupabase(cb) { cb(); } // no-op, supabase loads synchronously via UMD
 function openInvite(){
   document.getElementById('invUrl').value = window.location.href;
   document.getElementById('invKey').value = 'No password needed — just open the link!';
@@ -525,7 +517,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);
 // ═══════════════════════════════════════════════════════════
 //  SUPABASE CLIENT
 // ═══════════════════════════════════════════════════════════
-// createClient loaded via ESM module into window.__supabaseCreateClient
+// supabase loaded via UMD script tag
 let sb = null;
 
 // ── CREDENTIALS (baked in) ──
@@ -1452,12 +1444,26 @@ function showScreen(id){
 
 // ── Hide loading ──
 window.addEventListener('load',()=>{
+  // Fade out loading screen
   setTimeout(()=>{
     const lo=document.getElementById('loadOverlay');
     lo.style.transition='opacity .5s';lo.style.opacity='0';
     setTimeout(()=>lo.style.display='none',500);
-    const su=localStorage.getItem("pl_url");const sk=localStorage.getItem("pl_key");if(su)document.getElementById("cfgUrl").value=su;if(sk)document.getElementById("cfgKey").value=sk;showScreen("configScreen");
-  },1200);
+  },800);
+
+  // Show splash briefly then auto-connect
+  showScreen('configScreen');
+  setTimeout(async ()=>{
+    try {
+      const {createClient} = supabase;
+      sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const {error} = await sb.from('world_state').select('id').limit(1);
+      if(error) throw error;
+      showScreen('createScreen');
+    } catch(e) {
+      document.getElementById('cfgErr').textContent = 'Connection error: ' + e.message;
+    }
+  }, 1000);
 });
 
 // ── Cleanup on tab close ──
